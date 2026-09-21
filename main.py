@@ -46,9 +46,14 @@ while True:
     result = results[0]
 
     boxes = result.boxes.xyxy.cpu().numpy().astype(int)
+    class_ids = result.boxes.cls.cpu().numpy().astype(int)
+    confidences = result.boxes.conf.cpu().numpy()
 
-    for box in boxes:
+    for box, class_id, confidence in zip(boxes, class_ids, confidences):
         x1, y1, x2, y2 = box
+
+        class_name = result.names[class_id]
+        label = f"{class_name} {confidence:.2f}"
 
         cv2.rectangle(
             frame,
@@ -58,8 +63,18 @@ while True:
             2
         )
 
+        cv2.putText(
+            frame,
+            label,
+            (x1, y1 - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (0, 255, 0),
+            2
+        )
+
     # -------------------------
-    # Display
+    # FPS display
     # -------------------------
 
     cv2.putText(
