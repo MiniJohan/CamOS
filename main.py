@@ -1,5 +1,9 @@
 import cv2
 import time
+from ultralytics import YOLO
+
+
+model = YOLO("yolo11n.pt")
 
 cap = cv2.VideoCapture(0)
 
@@ -17,6 +21,10 @@ while True:
         print("Failed to grab frame.")
         break
 
+    # -------------------------
+    # FPS
+    # -------------------------
+
     frame_count += 1
 
     current_time = time.time()
@@ -29,6 +37,30 @@ while True:
         start_time = current_time
 
     fps_text = f"FPS: {fps:.1f}"
+
+    # -------------------------
+    # YOLO detection
+    # -------------------------
+
+    results = model(frame)
+    result = results[0]
+
+    boxes = result.boxes.xyxy.cpu().numpy().astype(int)
+
+    for box in boxes:
+        x1, y1, x2, y2 = box
+
+        cv2.rectangle(
+            frame,
+            (x1, y1),
+            (x2, y2),
+            (0, 255, 0),
+            2
+        )
+
+    # -------------------------
+    # Display
+    # -------------------------
 
     cv2.putText(
         frame,
@@ -44,6 +76,7 @@ while True:
 
     if cv2.waitKey(1) == ord("q"):
         break
+
 
 cap.release()
 cv2.destroyAllWindows()
