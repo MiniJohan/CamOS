@@ -14,6 +14,8 @@ start_time = time.time()
 
 fps = 0
 
+confidence_threshold = 0.5
+
 while True:
     ret, frame = cap.read()
 
@@ -50,6 +52,9 @@ while True:
     confidences = result.boxes.conf.cpu().numpy()
 
     for box, class_id, confidence in zip(boxes, class_ids, confidences):
+        if confidence < confidence_threshold:
+            continue
+
         x1, y1, x2, y2 = box
 
         class_name = result.names[class_id]
