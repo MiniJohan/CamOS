@@ -10,11 +10,15 @@ cap = cv2.VideoCapture(0)
 print("Camera opened:", cap.isOpened())
 
 frame_count = 0
+yolo_frame_count = 0
+
 start_time = time.time()
 
 fps = 0
 
-confidence_threshold = 0.5
+confidence_threshold = 0.7
+
+last_result = None
 
 while True:
     ret, frame = cap.read()
@@ -44,39 +48,47 @@ while True:
     # YOLO detection
     # -------------------------
 
-    results = model(frame)
-    result = results[0]
+    yolo_frame_count += 1
 
-    boxes = result.boxes.xyxy.cpu().numpy().astype(int)
-    class_ids = result.boxes.cls.cpu().numpy().astype(int)
-    confidences = result.boxes.conf.cpu().numpy()
+    if yolo_frame_count % 2 == 0:
+        results = model(frame)
+        last_result = results[0]
 
-    for box, class_id, confidence in zip(boxes, class_ids, confidences):
-        if confidence < confidence_threshold:
-            continue
+    # -------------------------
+    # Draw detections
+    # -------------------------
 
-        x1, y1, x2, y2 = box
+    if last_result is not None:
+        boxes = last_result.boxes.xyxy.cpu().numpy().astype(int)
+        class_ids = last_result.boxes.cls.cpu().numpy().astype(int)
+        confidences = last_result.boxes.conf.cpu().numpy()
 
-        class_name = result.names[class_id]
-        label = f"{class_name} {confidence:.2f}"
+        for box, class_id, confidence in zip(boxes, class_ids, confidences):
+            if confidence < confidence_threshold:
+                continue
 
-        cv2.rectangle(
-            frame,
-            (x1, y1),
-            (x2, y2),
-            (255, 255, 255),
-            2
-        )
+            x1, y1, x2, y2 = box
 
-        cv2.putText(
-            frame,
-            label,
-            (x1, y1 - 10),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (255, 255, 255),
-            2
-        )
+            class_name = last_result.names[class_id]
+            label = f"{class_name} {confidence:.2f}"
+
+            cv2.rectangle(
+                frame,
+                (x1, y1),
+                (x2, y2),
+                (255, 255, 255),
+                2
+            )
+
+            cv2.putText(
+                frame,
+                label,
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (255, 255, 255),
+                2
+            )
 
     # -------------------------
     # FPS display
