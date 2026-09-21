@@ -6,6 +6,9 @@ print("Camera opened:", cap.isOpened())
 
 while True:
     ret, frame = cap.read()
+    print(frame.shape)
+    print(frame.dtype)
+    break
 
     if not ret:
         print("Failed to grab frame.")
