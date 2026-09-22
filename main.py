@@ -8,6 +8,7 @@ from ultralytics import YOLO
 # -------------------------
 
 model = YOLO("yolo11n.pt")
+print(model.names)
 
 confidence_threshold = 0.7
 inference_size = 416
